@@ -135,6 +135,14 @@ class TagDetailAPI(APIView):
         snippets = Snippet.objects.filter(tags = pk)
         serializer = SnippetSerializer(snippets, many=True)
         return Response(serializer.data)
+
+class TagDetailAPI1(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request,pk):
+        snippets = Snippet.objects.filter(tags = pk)
+        serializer = SnippetSerializer(snippets, many=True)
+        return Response(serializer.data)
     
         
 
