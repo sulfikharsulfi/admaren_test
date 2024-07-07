@@ -144,6 +144,8 @@ class TagDetailAPI1(APIView):
         serializer = SnippetSerializer(snippets, many=True)
         return Response(serializer.data)
     
+#newwww
+    
         
 
 
