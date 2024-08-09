@@ -1,0 +1,35 @@
+pipeline {
+    agent any
+    stages {
+        stage('Clean Up') {
+            steps {
+                deleteDir()
+                echo 'Clean up stage ended'
+            }
+        }
+        stage('Clone Repo') {
+            steps {
+                echo 'Cloning started'
+                sh 'git clone https://github.com/sulfikharsulfi/admaren_test.git'
+                echo 'Cloning ended'
+            }
+        }
+        stage('Setup Environment') {
+            steps {
+                echo 'Setting up environment'
+                dir('admaren_test/snippet_manager') {
+                    sh 'python3 -m venv env1'
+                    sh '. env1/bin/activate && pip install -r requirements.txt'
+                }
+            }
+        }
+        stage('Run Django Server') {
+            steps {
+                echo 'Running Django server'
+                dir('admaren_test/snippet_manager') {
+                    sh '. env1/bin/activate && python manage.py runserver'
+                }
+            }
+        }
+    }
+}
