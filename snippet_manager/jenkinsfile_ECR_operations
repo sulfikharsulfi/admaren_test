@@ -1,0 +1,55 @@
+pipeline {
+    agent any
+    environment {
+        AWS_REGION = 'us-east-1' // e.g., 'us-west-2'
+        AWS_ACCOUNT_ID = '********' // e.g., '123456789012'
+        ECR_REPOSITORY_NAME = 'admeran' // e.g., 'my-app-repo'
+        IMAGE_TAG = 'latest' // or any tag you prefer
+    }
+    stages {
+        stage('cloning repo') {
+            steps {
+                 steps {
+                echo 'Cloning started'
+                sh 'git clone https://github.com/sulfikharsulfi/admaren_test.git'
+                echo 'Cloning ended'
+            }
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                dir('admaren_test/snippet_manager') {
+                    script {
+                        // Build Docker image
+                        echo "Building Docker image with tag ${IMAGE_TAG}"
+                        sh "docker build -t ${IMAGE_TAG} ."
+                    }
+                }
+            }
+        }
+        stage('Login to AWS ECR') {
+            steps {
+                script {
+                    // Log in to AWS ECR
+                    echo "Logging in to AWS ECR"
+                    sh """
+                        aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+                    """
+                }
+            }
+        }
+        stage('Push Docker Image to ECR') {
+            steps {
+                script {
+                    // Tag the Docker image for ECR
+                    echo "Tagging Docker image"
+                    sh "docker tag ${IMAGE_TAG} ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY_NAME}:${IMAGE_TAG}"
+                    
+                    // Push the Docker image to ECR
+                    echo "Pushing Docker image to ECR"
+                    sh "docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY_NAME}:${IMAGE_TAG}"
+                }
+            }
+        }
+    }
+}
