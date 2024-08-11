@@ -22,7 +22,7 @@ pipeline {
                     script {
                         // Build Docker image
                         echo "Building Docker image with tag ${IMAGE_TAG}"
-                        sh "docker build -t ${IMAGE_TAG} ."
+                        sh "docker build-f  -t ${IMAGE_TAG} ."
                     }
                 }
             }

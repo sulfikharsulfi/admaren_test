@@ -1,0 +1,210 @@
+# # Use an official Jenkins base image
+# FROM jenkins/jenkins:lts
+
+# # Switch to root user to perform installations
+# USER root
+
+# # Install any needed packages or dependencies
+# # For example, to install Git:
+# RUN apt-get update && \
+#     apt-get install -y git
+
+# # Switch back to Jenkins user
+# USER jenkins
+
+# # Define Jenkins ports
+# EXPOSE 8080
+
+# # Set the default command to run Jenkins
+# CMD ["jenkins.sh"]
+
+
+
+# # Use an official Jenkins base image
+# FROM jenkins/jenkins:lts
+
+# # Switch to root user to perform installations
+# USER root
+
+# # Install any needed packages or dependencies
+# RUN apt-get update && \
+#     apt-get install -y git
+
+# # Switch back to Jenkins user
+# USER jenkins
+
+# # Define Jenkins ports (this is just documentation)
+# EXPOSE 6000
+
+# # Set Jenkins to listen on port 6000
+# ENV JENKINS_OPTS="--httpPort=6000"
+
+# # Set the default command to run Jenkins on port 6000
+# CMD ["jenkins.sh"]
+
+
+
+# FROM jenkins/jenkins:jdk11
+
+# USER root
+
+# # Install Docker
+# RUN apt-get update && apt-get install -y docker.io
+
+# # Add jenkins user to docker group
+# RUN usermod -aG docker jenkins
+
+# USER jenkins
+
+# FROM jenkins/jenkins:jdk11
+
+# USER root
+
+# # Install Docker and sudo
+# RUN apt-get update && apt-get install -y docker.io sudo
+
+# # Add jenkins user to docker group
+# RUN usermod -aG docker jenkins
+
+# USER jenkins
+
+# FROM jenkins/jenkins:jdk11
+
+# USER root
+
+# # Install Docker and sudo
+# RUN apt-get update && apt-get install -y docker.io sudo
+
+# # Set a password for the jenkins user
+# RUN echo 'jenkins:yourpassword' | chpasswd
+
+# # Add jenkins user to docker group
+# RUN usermod -aG docker jenkins
+
+# USER jenkins
+
+
+# FROM jenkins/jenkins:jdk11
+
+# USER root
+
+# # Install Docker and sudo
+# RUN apt-get update && apt-get install -y docker.io sudo
+
+# # Set a password for the jenkins user (optional)
+# RUN echo 'jenkins:yourpassword' | chpasswd
+
+# # Ensure docker group exists and add jenkins user to docker group
+# RUN if ! getent group docker > /dev/null 2>&1; then \
+#         groupadd docker; \
+#     fi && \
+#     usermod -aG docker jenkins
+
+# USER jenkins
+
+
+# FROM jenkins/jenkins:lts
+
+# USER root
+
+# RUN apt-get update && \
+#     apt-get -y install \
+#     apt-transport-https \
+#     ca-certificates \
+#     gnupg2 \
+#     software-properties-common
+# RUN curl -fsSL https://download.docker.com/linux/$(. /etc/os-release; echo "$ID")/gpg | apt-key add -
+# RUN add-apt-repository \
+#    "deb [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") \
+#    $(lsb_release -cs) \
+#    stable"  
+# RUN apt-get update
+# RUN apt-get -y install docker-ce
+
+# USER jenkins
+
+
+# FROM jenkins/jenkins:lts
+
+# USER root
+
+# # Install necessary tools and add Docker repository
+# RUN apt-get update && \
+#     apt-get -y install \
+#     apt-transport-https \
+#     ca-certificates \
+#     gnupg2 \
+#     software-properties-common \
+#     curl \
+#     unzip
+
+# # Install Docker
+# RUN curl -fsSL https://download.docker.com/linux/$(. /etc/os-release; echo "$ID")/gpg | apt-key add - && \
+#     add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") $(lsb_release -cs) stable" && \
+#     apt-get update && \
+#     apt-get -y install docker-ce
+
+# # Install AWS Cli:
+# #   https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+# RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+# RUN unzip awscliv2.zip
+# RUN ./aws/install
+
+# # Check if AWS CLI was installed correctly
+# RUN aws --version
+
+# USER jenkins
+
+
+# Stage 1: Build stage
+FROM ubuntu:20.04 AS builder
+
+# Install necessary tools and add Docker repository
+RUN apt-get update && \
+    apt-get -y install \
+    apt-transport-https \
+    ca-certificates \
+    gnupg2 \
+    software-properties-common \
+    curl \
+    unzip
+
+# Install Docker
+RUN curl -fsSL https://download.docker.com/linux/$(. /etc/os-release; echo "$ID")/gpg | apt-key add - && \
+    add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") $(lsb_release -cs) stable" && \
+    apt-get update && \
+    apt-get -y install docker-ce
+
+# Install AWS CLI
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
+    unzip awscliv2.zip && \
+    ./aws/install && \
+    rm -rf awscliv2.zip aws
+
+# Stage 2: Final stage
+FROM jenkins/jenkins:lts
+
+# Copy Docker binary and AWS CLI from the build stage
+COPY --from=builder /usr/bin/docker /usr/bin/docker
+COPY --from=builder /usr/local/aws-cli /usr/local/aws-cli
+COPY --from=builder /usr/local/bin/aws /usr/local/bin/aws
+
+USER root
+
+# Set up AWS CLI directory
+ENV PATH="/usr/local/aws-cli/v2/current/bin:${PATH}"
+
+# Check if AWS CLI was installed correctly
+RUN aws --version
+
+USER jenkins
+
+
+
+
+
+
+
+
+
+
